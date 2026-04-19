@@ -1,0 +1,76 @@
+---
+# Soft caps for dev — prevents one namespace from exhausting the cluster.
+# Adjust aggregate limits if you add GPU nodes or larger nodes.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ml-quota-milvus
+  namespace: milvus
+spec:
+  hard:
+    requests.cpu: "4"
+    limits.cpu: "8"
+    requests.memory: 8Gi
+    limits.memory: 16Gi
+    persistentvolumeclaims: "5"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ml-quota-langfuse
+  namespace: langfuse
+spec:
+  hard:
+    requests.cpu: "4"
+    limits.cpu: "8"
+    requests.memory: 8Gi
+    limits.memory: 16Gi
+    persistentvolumeclaims: "10"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ml-quota-embeddings
+  namespace: embeddings
+spec:
+  hard:
+    requests.cpu: "4"
+    limits.cpu: "8"
+    requests.memory: 8Gi
+    limits.memory: 16Gi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ml-quota-vllm
+  namespace: vllm
+spec:
+  hard:
+    requests.cpu: "8"
+    limits.cpu: "16"
+    requests.memory: 24Gi
+    limits.memory: 32Gi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ml-quota-sglang
+  namespace: sglang
+spec:
+  hard:
+    requests.cpu: "8"
+    limits.cpu: "16"
+    requests.memory: 16Gi
+    limits.memory: 32Gi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ml-quota-ocr
+  namespace: ocr
+spec:
+  hard:
+    requests.cpu: "2"
+    limits.cpu: "4"
+    requests.memory: 4Gi
+    limits.memory: 8Gi

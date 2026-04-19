@@ -1,0 +1,55 @@
+---
+# SGLang — primarily GPU-oriented. This template requests CPU only; expect limited functionality.
+# When GTX 1070 is available, add nvidia.com/gpu: 1 and follow SGLang CUDA docs.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sglang
+  namespace: sglang
+  labels:
+    app: sglang
+    app.kubernetes.io/part-of: ml-ai-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sglang
+  template:
+    metadata:
+      labels:
+        app: sglang
+    spec:
+      containers:
+        - name: sglang
+          image: lmsysorg/sglang:v0.4.1-cu121
+          # Override default; CPU path may not be supported — use for GPU later.
+          command: ["/bin/bash", "-lc"]
+          args:
+            - |
+              python3 -m sglang.launch_server --model-path TinyLlama/TinyLlama-1.1B-Chat-v1.0 --host 0.0.0.0 --port 30000 --device cpu || sleep infinity
+          ports:
+            - containerPort: 30000
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+          readinessProbe:
+            tcpSocket:
+              port: 30000
+            initialDelaySeconds: 120
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sglang
+  namespace: sglang
+spec:
+  selector:
+    app: sglang
+  ports:
+    - port: 30000
+      targetPort: 30000

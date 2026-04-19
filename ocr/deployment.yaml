@@ -1,0 +1,65 @@
+---
+# OCR: Python + FastAPI + RapidOCR. First start downloads ONNX models (slow readiness).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr
+  namespace: ocr
+  labels:
+    app: ocr
+    app.kubernetes.io/part-of: ml-ai-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ocr
+  template:
+    metadata:
+      labels:
+        app: ocr
+    spec:
+      containers:
+        - name: ocr
+          image: python:3.11-slim
+          command: ["/bin/bash", "-lc"]
+          args:
+            - |
+              set -e
+              pip install --no-cache-dir fastapi uvicorn[standard] python-multipart rapidocr-onnxruntime pillow opencv-python-headless numpy -q
+              exec uvicorn server:app --host 0.0.0.0 --port 8000
+          workingDir: /app
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: code
+              mountPath: /app
+          resources:
+            requests:
+              cpu: 200m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 3Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            timeoutSeconds: 5
+      volumes:
+        - name: code
+          configMap:
+            name: ocr-server-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ocr
+  namespace: ocr
+spec:
+  selector:
+    app: ocr
+  ports:
+    - port: 8000
+      targetPort: 8000

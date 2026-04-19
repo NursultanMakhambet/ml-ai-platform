@@ -1,0 +1,77 @@
+---
+# Langfuse web — requires Postgres + Redis and secrets (see secrets/langfuse-secrets.yaml).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langfuse
+  namespace: langfuse
+  labels:
+    app: langfuse
+    app.kubernetes.io/part-of: ml-ai-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: langfuse
+  template:
+    metadata:
+      labels:
+        app: langfuse
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command: ["sh", "-c", "until nc -z postgres 5432; do sleep 2; done"]
+      containers:
+        - name: langfuse
+          image: langfuse/langfuse:2
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-secrets
+                  key: database-url
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-secrets
+                  key: nextauth-secret
+            - name: SALT
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-secrets
+                  key: salt
+            - name: REDIS_URL
+              value: redis://redis:6379
+            # Public URL users hit in browser — must match Ingress host + port if using NodePort ingress.
+            - name: NEXTAUTH_URL
+              value: "http://langfuse.local:30801"
+            - name: TELEMETRY_ENABLED
+              value: "false"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          readinessProbe:
+            httpGet:
+              path: /api/public/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: langfuse
+  namespace: langfuse
+spec:
+  selector:
+    app: langfuse
+  ports:
+    - port: 3000
+      targetPort: 3000

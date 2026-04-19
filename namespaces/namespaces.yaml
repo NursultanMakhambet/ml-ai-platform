@@ -1,0 +1,49 @@
+---
+# ML/AI workloads — one namespace per component for isolation and per-team quotas.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: milvus
+  labels:
+    app.kubernetes.io/part-of: ml-ai-platform
+    environment: dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: langfuse
+  labels:
+    app.kubernetes.io/part-of: ml-ai-platform
+    environment: dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: embeddings
+  labels:
+    app.kubernetes.io/part-of: ml-ai-platform
+    environment: dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vllm
+  labels:
+    app.kubernetes.io/part-of: ml-ai-platform
+    environment: dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sglang
+  labels:
+    app.kubernetes.io/part-of: ml-ai-platform
+    environment: dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ocr
+  labels:
+    app.kubernetes.io/part-of: ml-ai-platform
+    environment: dev

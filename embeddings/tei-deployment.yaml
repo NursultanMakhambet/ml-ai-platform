@@ -1,0 +1,56 @@
+---
+# Hugging Face TEI — OpenAI-compatible /embed and /v1/embeddings (check image README for paths).
+# CPU image; small English model. Swap model-id for multilingual if needed.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tei-embeddings
+  namespace: embeddings
+  labels:
+    app: tei-embeddings
+    app.kubernetes.io/part-of: ml-ai-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tei-embeddings
+  template:
+    metadata:
+      labels:
+        app: tei-embeddings
+    spec:
+      containers:
+        - name: tei
+          image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
+          args:
+            - --model-id
+            - BAAI/bge-small-en-v1.5
+            - --port
+            - "80"
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: "2"
+              memory: 6Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 120
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tei-embeddings
+  namespace: embeddings
+spec:
+  selector:
+    app: tei-embeddings
+  ports:
+    - port: 80
+      targetPort: 80

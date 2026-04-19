@@ -1,0 +1,20 @@
+# Example: Proxmox VM with GPU passthrough (GTX 1070) for a Kubernetes worker.
+# Copy into infrastructure-provisioning/terraform/environments/homelab/ or a new workspace,
+# merge with your proxmox_vm module, and set PCI passthrough in Proxmox UI (host config).
+#
+# Prerequisites:
+# - IOMMU enabled on host, GPU bound to vfio or passed to VM
+# - Proxmox: add PCI device (GPU) to VM as passthrough
+# - Inside guest: NVIDIA driver + nvidia-container-toolkit; on K8s: NVIDIA GPU Operator
+#
+# This file is NOT a complete root module — it shows variables you might add alongside existing VM defs.
+
+# Example variables (conceptual):
+# gpu_worker_vm_id   = 210
+# gpu_worker_cores   = 8
+# gpu_worker_memory  = 16384
+# gpu_worker_disk_gi = 100   # prefer NVME_STORAGE_FAST1 for OS + container layers
+
+# After VM exists, join it to the cluster (kubeadm join or Rancher custom command),
+# label: kubectl label node <name> nvidia.com/gpu.present=true
+# Install GPU Operator: helm install ... nv/gpu-operator

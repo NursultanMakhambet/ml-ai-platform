@@ -1,0 +1,75 @@
+---
+# Milvus standalone — single binary with embedded dependencies (dev-friendly).
+# Production: use Milvus Helm cluster mode + external object storage.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: milvus
+  namespace: milvus
+  labels:
+    app: milvus
+    app.kubernetes.io/part-of: ml-ai-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: milvus
+  template:
+    metadata:
+      labels:
+        app: milvus
+    spec:
+      containers:
+        - name: milvus
+          image: milvusdb/milvus:v2.4.1
+          args: ["milvus", "run", "standalone"]
+          ports:
+            - name: grpc
+              containerPort: 19530
+            - name: metrics
+              containerPort: 9091
+          env:
+            # Local data path inside the container; backed by PVC below.
+            - name: COMMON_STORAGETYPE
+              value: "local"
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/milvus
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 2Gi
+            limits:
+              cpu: "2000m"
+              memory: 4Gi
+          # gRPC listens when standalone is ready (avoids HTTP path differences across versions).
+          readinessProbe:
+            tcpSocket:
+              port: grpc
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: grpc
+            initialDelaySeconds: 90
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: milvus-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: milvus
+  namespace: milvus
+spec:
+  selector:
+    app: milvus
+  ports:
+    - name: grpc
+      port: 19530
+      targetPort: grpc
+    - name: metrics
+      port: 9091
+      targetPort: metrics

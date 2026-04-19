@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ocr-server-code
+  namespace: ocr
+  labels:
+    app.kubernetes.io/part-of: ml-ai-platform
+data:
+  server.py: |
+    """Minimal OCR HTTP API — RapidOCR (ONNX). Install deps at container start via Dockerfile in production."""
+    import os
+    from fastapi import FastAPI, File, UploadFile
+    from fastapi.responses import JSONResponse
+
+    app = FastAPI(title="OCR", version="0.1")
+
+    _engine = None
+
+    def get_engine():
+        global _engine
+        if _engine is None:
+            from rapidocr_onnxruntime import RapidOCR
+            _engine = RapidOCR()
+        return _engine
+
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}
+
+    @app.post("/ocr")
+    async def ocr(file: UploadFile = File(...)):
+        import numpy as np
+        import cv2
+        raw = await file.read()
+        arr = np.frombuffer(raw, dtype=np.uint8)
+        img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+        if img is None:
+            return JSONResponse({"text": "", "error": "invalid image"}, status_code=400)
+        engine = get_engine()
+        result, _ = engine(img)
+        lines = []
+        if result:
+            for item in result:
+                if item and len(item) > 1:
+                    lines.append(str(item[1]))
+        text = "\n".join(lines)
+        return JSONResponse({"text": text})

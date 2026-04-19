@@ -1,0 +1,14 @@
+# Optional local smoke test (not identical to Kubernetes networking).
+# Useful for validating Langfuse/Milvus wiring before applying manifests.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: devpass
+      POSTGRES_DB: langfuse
+    ports: ["5432:5432"]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  # Langfuse: set DATABASE_URL / NEXTAUTH_SECRET / SALT / NEXTAUTH_URL in real use.
