@@ -31,7 +31,7 @@ spec:
               memory: 128Mi
       containers:
         - name: langfuse
-          image: langfuse/langfuse:2
+          image: langfuse/langfuse:1
           ports:
             - containerPort: 3000
           env:
@@ -57,16 +57,6 @@ spec:
                   key: encryption-key
             - name: REDIS_URL
               value: redis://redis:6379
-            - name: REDIS_CONNECTION_STRING
-              value: redis://redis:6379
-            - name: CLICKHOUSE_URL
-              value: http://clickhouse:8123
-            - name: CLICKHOUSE_MIGRATION_URL
-              value: clickhouse://clickhouse:9000
-            - name: CLICKHOUSE_USER
-              value: default
-            - name: CLICKHOUSE_PASSWORD
-              value: ""
             # Public URL users hit in browser — must match Ingress host + port if using NodePort ingress.
             - name: NEXTAUTH_URL
               value: "http://langfuse.local:30801"
