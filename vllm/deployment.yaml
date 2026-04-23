@@ -31,6 +31,8 @@ spec:
           env:
             - name: VLLM_PORT
               value: "8000"
+            - name: VLLM_CPU_KVCACHE_SPACE
+              value: "1"
           args:
             - --model
             - TinyLlama/TinyLlama-1.1B-Chat-v1.0
@@ -54,10 +56,10 @@ spec:
           resources:
             requests:
               cpu: "500m"
-              memory: 2Gi
+              memory: 4Gi
             limits:
               cpu: "2"
-              memory: 4Gi
+              memory: 8Gi
           # vLLM exposes OpenAI API; /v1/models is available when ready.
           readinessProbe:
             httpGet:
