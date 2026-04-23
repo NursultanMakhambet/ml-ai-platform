@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.6.3
+          image: vllm/vllm-openai:v0.4.3
           env:
             - name: VLLM_PORT
               value: "8000"
@@ -35,7 +35,7 @@ spec:
             - --model
             - TinyLlama/TinyLlama-1.1B-Chat-v1.0
             - --dtype
-            - float32
+            - float16
             - --max-model-len
             - "1024"
             - --gpu-memory-utilization
