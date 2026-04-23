@@ -36,6 +36,9 @@ spec:
       containers:
         - name: sglang
           image: lmsysorg/sglang:v0.3.6-cu118
+          env:
+            - name: TRANSFORMERS_NO_TORCHVISION
+              value: "1"
           command: ["/bin/bash", "-lc"]
           args:
             - |
