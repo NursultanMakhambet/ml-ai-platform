@@ -18,7 +18,27 @@ spec:
     metadata:
       labels:
         app: sglang
+        llm-heavy: "true"
     spec:
+      runtimeClassName: nvidia
+      nodeSelector:
+        ai-gpu-node: "true"
+      tolerations:
+        - key: ai-gpu
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: llm-heavy
+                      operator: In
+                      values: ["true"]
+                topologyKey: kubernetes.io/hostname
       containers:
         - name: sglang
           image: lmsysorg/sglang:v0.4.1-cu121
@@ -26,21 +46,30 @@ spec:
           command: ["/bin/bash", "-lc"]
           args:
             - |
-              python3 -m sglang.launch_server --model-path TinyLlama/TinyLlama-1.1B-Chat-v1.0 --host 0.0.0.0 --port 30000 --device cpu || sleep infinity
+              python3 -m sglang.launch_server --model-path TinyLlama/TinyLlama-1.1B-Chat-v1.0 --host 0.0.0.0 --port 30000 || sleep infinity
           ports:
             - containerPort: 30000
+          volumeMounts:
+            - name: huggingface-cache
+              mountPath: /root/.cache/huggingface
           resources:
             requests:
-              cpu: "500m"
-              memory: 4Gi
+              cpu: "250m"
+              memory: 2Gi
+              nvidia.com/gpu: 1
             limits:
-              cpu: "4"
-              memory: 8Gi
+              cpu: "2"
+              memory: 4Gi
+              nvidia.com/gpu: 1
           readinessProbe:
             tcpSocket:
               port: 30000
             initialDelaySeconds: 120
             periodSeconds: 20
+      volumes:
+        - name: huggingface-cache
+          persistentVolumeClaim:
+            claimName: huggingface-cache
 ---
 apiVersion: v1
 kind: Service

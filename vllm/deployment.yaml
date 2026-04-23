@@ -18,7 +18,27 @@ spec:
     metadata:
       labels:
         app: vllm
+        llm-heavy: "true"
     spec:
+      runtimeClassName: nvidia
+      nodeSelector:
+        ai-gpu-node: "true"
+      tolerations:
+        - key: ai-gpu
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: llm-heavy
+                      operator: In
+                      values: ["true"]
+                topologyKey: kubernetes.io/hostname
       containers:
         - name: vllm
           image: vllm/vllm-openai:v0.6.3
@@ -26,24 +46,29 @@ spec:
             - --model
             - TinyLlama/TinyLlama-1.1B-Chat-v1.0
             - --dtype
-            - float32
+            - float16
             - --max-model-len
             - "1024"
+            - --gpu-memory-utilization
+            - "0.70"
             - --host
             - "0.0.0.0"
             - --port
             - "8000"
-            - --device
-            - cpu
           ports:
             - containerPort: 8000
+          volumeMounts:
+            - name: huggingface-cache
+              mountPath: /root/.cache/huggingface
           resources:
             requests:
-              cpu: "1000m"
-              memory: 6Gi
+              cpu: "500m"
+              memory: 2Gi
+              nvidia.com/gpu: 1
             limits:
-              cpu: "4"
-              memory: 12Gi
+              cpu: "2"
+              memory: 4Gi
+              nvidia.com/gpu: 1
           # vLLM exposes OpenAI API; /v1/models is available when ready.
           readinessProbe:
             httpGet:
@@ -58,6 +83,10 @@ spec:
               port: 8000
             initialDelaySeconds: 420
             periodSeconds: 60
+      volumes:
+        - name: huggingface-cache
+          persistentVolumeClaim:
+            claimName: huggingface-cache
 ---
 apiVersion: v1
 kind: Service

@@ -10,7 +10,9 @@ metadata:
     app: milvus
     app.kubernetes.io/part-of: ml-ai-platform
 spec:
-  replicas: 1
+  # Keep Milvus disabled by default in this lightweight profile until
+  # etcd/minio backing services are added for stable standalone startup.
+  replicas: 0
   selector:
     matchLabels:
       app: milvus
