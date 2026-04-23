@@ -25,14 +25,21 @@ spec:
         app: sglang
         llm-heavy: "true"
     spec:
+      runtimeClassName: nvidia
+      nodeSelector:
+        ai-gpu-node: "true"
+      tolerations:
+        - key: ai-gpu
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
       containers:
         - name: sglang
-          image: lmsysorg/sglang:v0.4.1-cu121
-          # Override default; CPU path may not be supported — use for GPU later.
+          image: lmsysorg/sglang:v0.3.6-cu118
           command: ["/bin/bash", "-lc"]
           args:
             - |
-              python3 -m sglang.launch_server --model-path TinyLlama/TinyLlama-1.1B-Chat-v1.0 --host 0.0.0.0 --port 30000 --device cpu || sleep infinity
+              python3 -m sglang.launch_server --model-path TinyLlama/TinyLlama-1.1B-Chat-v1.0 --host 0.0.0.0 --port 30000 || sleep infinity
           ports:
             - containerPort: 30000
           volumeMounts:
@@ -42,9 +49,11 @@ spec:
             requests:
               cpu: "250m"
               memory: 2Gi
+              nvidia.com/gpu: 1
             limits:
               cpu: "2"
               memory: 4Gi
+              nvidia.com/gpu: 1
           readinessProbe:
             tcpSocket:
               port: 30000
