@@ -50,6 +50,11 @@ spec:
                 secretKeyRef:
                   name: langfuse-secrets
                   key: salt
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-secrets
+                  key: encryption-key
             - name: REDIS_URL
               value: redis://redis:6379
             # Public URL users hit in browser — must match Ingress host + port if using NodePort ingress.
