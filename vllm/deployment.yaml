@@ -30,7 +30,7 @@ spec:
           image: vllm/vllm-openai:v0.4.3
           env:
             - name: VLLM_PORT
-              value: "8000"
+              value: "8001"
             - name: VLLM_CPU_KVCACHE_SPACE
               value: "1"
           args:
