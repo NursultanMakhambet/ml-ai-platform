@@ -10,6 +10,11 @@ metadata:
     app.kubernetes.io/part-of: ml-ai-platform
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: langfuse
@@ -62,7 +67,7 @@ spec:
             - name: CLICKHOUSE_URL
               value: http://clickhouse:8123
             - name: CLICKHOUSE_MIGRATION_URL
-              value: clickhouse://clickhouse:9000
+              value: clickhouse://default:@clickhouse:9000
             - name: CLICKHOUSE_USER
               value: default
             - name: CLICKHOUSE_PASSWORD
